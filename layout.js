@@ -10,13 +10,13 @@ layout.chartProps = { //use canvasjs documentation to find all properties
 
     axisX: {
         minimum: 0,
-        maximum: 5,
+        maximum: 600,
         gridThickness: 0
     },
 
     axisY: {
         minimum: 0,
-        maximum: 12,
+        maximum: 70,
         gridThickness: 0
     },
 

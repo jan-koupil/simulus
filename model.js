@@ -9,25 +9,31 @@ class Model {
     constructor() {
 
         /** @member {number} show only each n-th point, set to 1 to display every point */
-        this.displayedPointRatio = 200;
+        this.displayedPointRatio = 20;
 
         /** @member {number} current step number, initialized to 0 */
         this.stepCount = 0;
 
         /** @type {number} the time step duration */
-        let dt = 0.0001;
+        let dt = 0.05;
 
 
         // Simulation declaration area - explicitly declare and initialize all variables here
 
+        const Q = 13.7e+3; //kg per s
+        const v_out = 2.5e+3; //m per s
+        let M = 2.5e+6; //kg
+        const F = Q * v_out;
 
-        let a = -9.81;
+        let a = 0;
+        let s = 0;
+        let v = 0;
 
-        let x = 1;
-        let y = 5;
-
-        let v_x = 1.5;
-        let v_y = 1;
+        let speeds = [
+            {t: null, v: 7.9e+3, s:null, M:null},
+            {t: null, v: 11.2e+3, s:null, M:null},
+            {t: null, v: 42.1e+3, s:null, M:null}
+        ];
 
         // Declaration end
 
@@ -37,12 +43,24 @@ class Model {
          * @returns {boolean} False is returned, when simulation should not continue.
          */
         this.step = function(){
-        
-            v_y += a * dt;
-            x += v_x * dt;
-            y += v_y * dt;
+                  
+            M -= Q * dt;
+            a = F / M;
+            v += a * dt;
+            s += v * dt;
 
-            if (y <= 0) return false; // stop condition
+            for (let speed of speeds) {
+                if (v >= speed.v && !speed.t) {
+                    speed.t = this.getTime();
+                    speed.s = s;
+                    speed.M = M;
+                }
+            }
+
+            if (v > 42.1e+3 || M<=0) {
+                console.log(speeds);
+                return false; // stop condition
+            }
             
             this.stepCount++; // Never delete this, used to calculate total time
             return true; // If next iteration allowed return true, if ended, return false
@@ -55,7 +73,7 @@ class Model {
          */
         this.getCoordinates = function() {
     
-            return [x, y]; // For a single dataset
+            return [this.getTime(), a]; // For a single dataset
             
             // return [ // for multiple dataset
             //   [earth.r.x, earth.r.y],
@@ -69,8 +87,10 @@ class Model {
         this.getVarDescriptions = function() {
             return {
                 time : {name: "Time", unit: "s", precision: 2},
-                x : {name: "x", unit: "m", precision: 2},
-                y : {name: "y", unit: "m", precision: 2}
+                s : {name: "s", unit: "km", precision: 2},
+                v : {name: "v", unit: "km/s", precision: 2},
+                a : {name: "a", unit: "m/s2", precision: 2},
+                M : {name: "M", unit: "t", precision: 2},
             };
         };
     
@@ -81,8 +101,10 @@ class Model {
         this.getVars = function() {
             return {
                 time : this.getTime(),
-                x,
-                y
+                s: s/1000,
+                v: v/1000,
+                a,
+                M: M/1000
             };
         };
         
